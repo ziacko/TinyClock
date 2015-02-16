@@ -7,9 +7,18 @@
 
 #if defined(_WIN32) || defined(_WIN64)
 #include <Windows.h>
+#elif defined(__linux__)
+#include <sys/time.h>
+#include <stdint.h>
 #endif
-
-#define RESOLUTION_SECOND 1
+#if defined(_WIN32)
+#define RESOLUTION_LOW 000.1
+#elif defined(__linux__)
+#define RESOLUTION_FLOAT_LOW 1e-6
+#define RESOLUTION_FLOAT_HIGH 1e-9
+#define RESOLUTION_HIGH 1e9
+#define RESOLUTION_LOW 1e6
+#endif
 #define RESOLUTION_MILLISECOND 1000.0
 #define RESOLUTION_MICROSECOND 1000000.0
 
@@ -31,7 +40,7 @@ class TinyClock
 #if defined(_WIN32) || defined(_WIN64)
 		GetInstance()->Windows_Initialize();
 #elif defined(__linux__)
-
+		GetInstance()->Linux_Initialize();
 #endif
 	}
 
@@ -65,7 +74,16 @@ class TinyClock
 #if defined(_WIN32)
 		return Windows_GetTime();
 #elif defined(__linux__)
+		return Linux_GetTime();
+#endif
+	}
 
+	static double GetRawTime()
+	{
+#if defined(_WIN32) || defined(_WIN64)
+		return Windows_GetRawTime();
+#elif defined(__linux__) 
+		return Linux_GetRawTime();
 #endif
 	}
 
@@ -90,17 +108,15 @@ class TinyClock
 		{
 			GetInstance()->SupportsHighRes = true;
 			GetInstance()->Resolution = 1.0 / (double)Frequency;
-			printf("%f\n", GetInstance()->Resolution);
 		}
 
 		else
 		{
 			GetInstance()->SupportsHighRes = false;
-			GetInstance()->Resolution = 0.001;
+			GetInstance()->Resolution = RESOLUTION_LOW;
 		}
 
 		GetInstance()->BaseTime = Windows_GetRawTime();
-		//printf("%i \n", GetInstance()->BaseTime);
 	}
 
 	static unsigned __int64 Windows_GetRawTime()
@@ -119,23 +135,67 @@ class TinyClock
 	{
 		return (double)(Windows_GetRawTime() - GetInstance()->BaseTime) * GetInstance()->Resolution;
 	}
+
 #elif defined(__linux__)
-	static void Linux_Initialize(){}
+	static void Linux_Initialize()
+	{
+		GetInstance()->MonoticSupported = false;
+		
+#if defined(CLOCK_MONOTONIC)
+		struct timespec ts;
 
-	static unsigned int Linux_GetRawTime(){}
+		if(!clock_gettime(CLOCK_MONOTONIC, &ts))
+		{
+			GetInstance()->MonoticSupported = true;
+			GetInstance()->Resolution = RESOLUTION_FLOAT_HIGH;
+		}
+		else
+#endif
+		{
+			GetInstance()->Resolution = RESOLUTION_FLOAT_LOW;
+		}
 
-	static double Linux_GetTime();
+		GetInstance()->BaseTime = GetRawTime();		
+	}
+
+	static uint64_t Linux_GetRawTime()
+	{
+#if defined(CLOCK_MONOTONIC)
+		if(GetInstance()->MonoticSupported)
+		{
+			struct timespec ts;
+			clock_gettime(CLOCK_MONOTONIC, &ts);
+			return (uint64_t)ts.tv_sec * (uint64_t)RESOLUTION_HIGH + (uint64_t)ts.tv_nsec;
+		}
+
+		else
+#endif
+		{
+			struct timeval TimeVal;
+			gettimeofday(&TimeVal, 0);
+			return (uint64_t)TimeVal.tv_sec * (uint64_t)RESOLUTION_HIGH + (uint64_t)TimeVal.tv_usec;
+		}
+	}
+
+	static double Linux_GetTime()
+	{
+		return (double)(GetRawTime() - GetInstance()->BaseTime) * GetInstance()->Resolution;
+	}
 #endif
 
 	static TinyClock* Instance;
 
 	double TotalTime, DeltaTime, Resolution, BaseTime;
 
+#if defined(_WIN32) || defined(_WIN64)
 	bool SupportsHighRes;
+#elif defined(__linux__)
+	bool MonoticSupported;
+#endif
+
 	static bool Initialized;
 };
 
 TinyClock* TinyClock::Instance = nullptr;
 bool TinyClock::Initialized = false;
-
 #endif

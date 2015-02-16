@@ -4,9 +4,9 @@ int main()
 {
 	TinyClock::Intialize();
 
-	for (double Time = 0; Time < 300; Time = TinyClock::GetTotalTime())
+	for (double Time = 0; Time < 10; Time = TinyClock::GetTotalTime())
 	{		
-		TinyClock::UpdateClockFixed(30);
+		TinyClock::UpdateClockAdaptive();
 		printf("%f \r", TinyClock::GetTotalTime());
 	}
 
