@@ -40,15 +40,18 @@ class TinyClock
 	 */
 	static void Intialize()
 	{
-		GetInstance()->TotalTime = 0;
-		GetInstance()->DeltaTime = 0;
+		if (!TinyClock::Initialized)
+		{
+			GetInstance()->TotalTime = 0;
+			GetInstance()->DeltaTime = 0;
 
 #if defined(_WIN32) || defined(_WIN64)
-		GetInstance()->Windows_Initialize();
+			GetInstance()->Windows_Initialize();
 #elif defined(__linux__)
-		GetInstance()->Linux_Initialize();
+			GetInstance()->Linux_Initialize();
 #endif
-		TinyClock::Initialized = true;
+			TinyClock::Initialized = true;
+		}
 	}
 
 	/** 
