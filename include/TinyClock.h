@@ -1,115 +1,115 @@
-#ifndef TINYCLOCK_H_
-#define TINYCLOCK_H_
+#ifndef TINYCLOCK_H
+#define TINYCLOCK_H
 
 #include <time.h>
 #include <stdio.h>
 #include <math.h>
 
-#if defined(_WIN32) || defined(_WIN64)
+#if defined ( _WIN32 ) || defined ( _WIN64 )
 #include <Windows.h>
-#elif defined(__linux__)
+#elif defined ( __linux__ )
 #include <sys/time.h>
 #include <stdint.h>
 #endif
-#if defined(_WIN32)
-#define RESOLUTION_LOW 000.1
-#elif defined(__linux__)
-#define RESOLUTION_FLOAT_LOW 1e-6
-#define RESOLUTION_FLOAT_HIGH 1e-9
-#define RESOLUTION_HIGH 1e9
-#define RESOLUTION_LOW 1e6
+#if defined ( _WIN32 )
+#define TINYCLOCK_RESOLUTION_LOW 000.1
+#elif defined ( __linux__ )
+#define TINYCLOCK_RESOLUTION_FLOAT_LOW 1e-6
+#define TINYCLOCK_RESOLUTION_FLOAT_HIGH 1e-9
+#define TINYCLOCK_RESOLUTION_HIGH 1e9
+#define TINYCLOCK_RESOLUTION_LOW 1e6
 #endif
-#define RESOLUTION_MILLISECOND 1000.0
-#define RESOLUTION_MICROSECOND 1000000.0
+#define TINYCLOCK_RESOLUTION_MILLISECOND 1000.0
+#define TINYCLOCK_RESOLUTION_MICROSECOND 1000000.0
 
-#define ERROR_FIRST 0
-#define ERROR_NOTINITIALIZED ERROR_FIRST + 1 
+#define TINYCLOCK_ERROR_FIRST 0
+#define TINYCLOCK_ERROR_NOT_INITIALIZED TINYCLOCK_ERROR_FIRST + 1 
 
-class TinyClock
+class tinyClock
 {
 	public:
 
-	TinyClock()
+	tinyClock ( void )
 	{
-		Initialized = false;
-	};
-	~TinyClock();
+		initialized = false;
+	}
+	~tinyClock ( void );
 
 	/** 
 	 *Initialize the TinyClock API
 	 */
-	static void Intialize()
+	static void Intialize ( void )
 	{
-		if (!TinyClock::Initialized)
+		if ( !tinyClock::initialized )
 		{
-			GetInstance()->TotalTime = 0;
-			GetInstance()->DeltaTime = 0;
+			GetInstance()->totalTime = 0;
+			GetInstance()->deltaTime = 0;
 
-#if defined(_WIN32) || defined(_WIN64)
-			GetInstance()->Windows_Initialize();
-#elif defined(__linux__)
-			GetInstance()->Linux_Initialize();
+#if defined ( _WIN32 ) || defined ( _WIN64 )
+			GetInstance()->Windows_Initialize ( );
+#elif defined ( __linux__ )
+			GetInstance()->Linux_Initialize ( );
 #endif
-			TinyClock::Initialized = true;
+			tinyClock::initialized = true;
 		}
 	}
 
 	/** 
 	 * update the clock using a fixed time step. e.g 60 
 	 */
-	static inline void UpdateClockFixed(double TimeStep)
+	static inline void UpdateClockFixed ( double TimeStep )
 	{
-		if (TinyClock::Initialized)
+		if ( tinyClock::initialized )
 		{
-			GetInstance()->DeltaTime = 1.0 / TimeStep;
-			GetInstance()->TotalTime += GetInstance()->DeltaTime;
+			GetInstance()->deltaTime = 1.0 / TimeStep;
+			GetInstance()->totalTime += GetInstance()->deltaTime;
 		}
 
 		else
 		{
-			PrintErrorMessage(ERROR_NOTINITIALIZED);
+			PrintErrorMessage( TINYCLOCK_ERROR_NOT_INITIALIZED );
 		}
 	}
 
 	/** 
 	 *update the clock using adaptive CPU clocking
 	 */
-	static inline void UpdateClockAdaptive()
+	static inline void UpdateClockAdaptive( void )
 	{
-		if (TinyClock::Initialized)
+		if ( tinyClock::initialized )
 		{
-			double NewTime = TinyClock::GetTime();
-			GetInstance()->DeltaTime = (NewTime - GetInstance()->TotalTime);
-			GetInstance()->TotalTime = NewTime;
+			double NewTime = tinyClock::GetTime();
+			GetInstance()->deltaTime = ( NewTime - GetInstance()->totalTime );
+			GetInstance()->totalTime = NewTime;
 		}
 		else
 		{
-			PrintErrorMessage(ERROR_NOTINITIALIZED);
+			PrintErrorMessage( TINYCLOCK_ERROR_NOT_INITIALIZED );
 		}
 	}
 
 	/**
 	 *get the total amount of time TinyClock has been running in milliseconds
 	 */
-	static inline double GetTotalTime()
+	static inline double GetTotalTime( void )
 	{
-		if (TinyClock::Initialized)
+		if ( tinyClock::initialized )
 		{
-			return GetInstance()->TotalTime;
+			return GetInstance()->totalTime;
 		}
-		PrintErrorMessage(ERROR_NOTINITIALIZED);
+		PrintErrorMessage( TINYCLOCK_ERROR_NOT_INITIALIZED );
 		return NULL;
 	}
 	/** 
-	 *get the current CPU delta time(time between CPU cycles in milliseconds)
+	 *get the current CPU delta time ( time between CPU cycles in milliseconds )
 	 */
-	static inline double GetDeltaTime()
+	static inline double GetDeltaTime( void )
 	{
-		if (TinyClock::Initialized)
+		if ( tinyClock::initialized )
 		{
-			return GetInstance()->DeltaTime;
+			return GetInstance()->deltaTime;
 		}
-		PrintErrorMessage(ERROR_NOTINITIALIZED);
+		PrintErrorMessage( TINYCLOCK_ERROR_NOT_INITIALIZED );
 		return NULL;
 	}
 
@@ -118,42 +118,42 @@ class TinyClock
 	/**
 	 *get the Time of the computer
 	 */
-	static double GetTime()
+	static double GetTime( void )
 	{
-		if (TinyClock::Initialized)
+		if ( tinyClock::initialized )
 		{
-#if defined(_WIN32)
+#if defined ( _WIN32 )
 			return Windows_GetTime();
-#elif defined(__linux__)
+#elif defined ( __linux__ )
 			return Linux_GetTime();
 #endif
 		}
-		PrintErrorMessage(ERROR_NOTINITIALIZED);
+		PrintErrorMessage( TINYCLOCK_ERROR_NOT_INITIALIZED );
 		return NULL;
 	}
 
 	/** 
 	 *get the amount of time the computer has been running
 	 */
-	static double GetRawTime()
+	static double GetRawTime( void )
 	{
-#if defined(_WIN32) || defined(_WIN64)
-			return Windows_GetRawTime();
-#elif defined(__linux__) 
-			return Linux_GetRawTime();
+#if defined ( _WIN32 ) || defined ( _WIN64 )
+			return ( double )Windows_GetRawTime();
+#elif defined ( __linux__ ) 
+			return ( double )Linux_GetRawTime();
 #endif
 	}
 
 	/** 
 	 *print the error message corresponding to the given error number
 	 */
-	static void PrintErrorMessage(unsigned int ErrorNumber)
+	static void PrintErrorMessage( unsigned int ErrorNumber )
 	{
-		switch (ErrorNumber)
+		switch ( ErrorNumber )
 		{
-			case ERROR_NOTINITIALIZED:
+			case TINYCLOCK_ERROR_NOT_INITIALIZED:
 			{
-				printf("Error: TinyClock needs to be initialized first \n");
+				printf( "Error: TinyClock needs to be initialized first \n" );
 				break;
 			}
 
@@ -167,62 +167,62 @@ class TinyClock
 	/** 
 	 *return an instance of the TinyClock class
 	 */
-	static inline TinyClock* GetInstance()
+	static inline tinyClock* GetInstance( void )
 		{
-			if (TinyClock::Initialized)
+			if ( tinyClock::initialized )
 			{
-				return Instance;
+				return instance;
 			}
 
-			TinyClock::Instance = new TinyClock();
-			TinyClock::Initialized = true;
-			return Instance;
+			tinyClock::instance = new tinyClock();
+			tinyClock::initialized = true;
+			return instance;
 		}
 
-#if defined(_WIN32)
+#if defined ( _WIN32 )
 	/**
 	 *Initialize tinyClock on the Windows platform
 	 */
-	static void Windows_Initialize()
+	static void Windows_Initialize( void )
 	{
 		unsigned __int64 Frequency;
 
 		//the frequency of the performance counter in seconds
-		if (QueryPerformanceFrequency((LARGE_INTEGER*)&Frequency))
+		if ( QueryPerformanceFrequency( ( LARGE_INTEGER* )&Frequency ) )
 		{
 			/*
 			* if QueryPerformanceFrequency does not return 0 then your computer supports
 			* high resolution Time steps.
 			*/
-			GetInstance()->SupportsHighRes = true;
-			GetInstance()->Resolution = 1.0 / (double)Frequency;
+			GetInstance()->supportsHighRes = true;
+			GetInstance()->timeResolution = 1.0 / ( double )Frequency;
 		}
 
 		else
 		{
-			GetInstance()->SupportsHighRes = false;
-			GetInstance()->Resolution = RESOLUTION_LOW;
+			GetInstance()->supportsHighRes = false;
+			GetInstance()->timeResolution = TINYCLOCK_RESOLUTION_LOW;
 		}
 
 		//base time is your computers time when tinyWindow initializes
-		GetInstance()->BaseTime = Windows_GetRawTime();
+		GetInstance()->baseTime = ( double )Windows_GetRawTime();
 	}
 
 	/**
 	 *get the amount of time since the system was turned on
 	 */
-	static unsigned __int64 Windows_GetRawTime()
+	static unsigned __int64 Windows_GetRawTime( void )
 	{
-			if (GetInstance()->SupportsHighRes)
+			if ( GetInstance()->supportsHighRes )
 			{
 				unsigned __int64 Time = 0;
 				//the current value of the performance counter in counts for high resolution time counts
-				QueryPerformanceCounter((LARGE_INTEGER*)&Time);
+				QueryPerformanceCounter( ( LARGE_INTEGER* )&Time );
 				return Time;
 			}
 
 			//the amount of milliseconds since the system was started
-			return (unsigned __int64)GetTickCount();
+			return ( unsigned __int64 )GetTickCount();
 	}
 
 	/*
@@ -230,56 +230,56 @@ class TinyClock
 	 *time that was collected when TinyClock was Initialized. then multiply that value
 	 *by the current Resolution.
 	 */
-	static double Windows_GetTime()
+	static double Windows_GetTime( void )
 	{
-			return (double)(Windows_GetRawTime() - GetInstance()->BaseTime) * GetInstance()->Resolution;
+			return ( double ) ( Windows_GetRawTime() - GetInstance()->baseTime ) * GetInstance()->timeResolution;
 	}
 
-#elif defined(__linux__)
+#elif defined ( __linux__ )
 	/*
 	 *Initialize TinyClock on the Linux platform
 	 */
-	static void Linux_Initialize()
+	static void Linux_Initialize( void )
 	{
-		GetInstance()->MonoticSupported = false;
+		GetInstance()->monoticSupported = false;
 		
 		//If monotonic is supported. Monotonic time since an unspecified starting point 
-#if defined(CLOCK_MONOTONIC)
+#if defined ( CLOCK_MONOTONIC )
 		struct timespec ts;
 
-		if(!clock_gettime(CLOCK_MONOTONIC, &ts))
+		if ( !clock_gettime( CLOCK_MONOTONIC, &ts ) )
 		{
-			GetInstance()->MonoticSupported = true;
-			GetInstance()->Resolution = RESOLUTION_FLOAT_HIGH;
+			GetInstance()->monoticSupported = true;
+			GetInstance()->timeResolution = TINYCLOCK_RESOLUTION_FLOAT_HIGH;
 		}
 		else
 #endif
 		{
-			GetInstance()->Resolution = RESOLUTION_FLOAT_LOW;
+			GetInstance()->timeResolution = TINYCLOCK_RESOLUTION_FLOAT_LOW;
 		}
 
-		GetInstance()->BaseTime = GetRawTime();		
+		GetInstance()->baseTime = GetRawTime();
 	}
 
 	/**
 	 *get the amount of time since the system was turned on in milliseconds
 	 */
-	static uint64_t Linux_GetRawTime()
+	static uint64_t Linux_GetRawTime( void )
 	{
-#if defined(CLOCK_MONOTONIC)
-		if(GetInstance()->MonoticSupported)
+#if defined ( CLOCK_MONOTONIC )
+		if ( GetInstance()->monoticSupported )
 		{
 			struct timespec ts;
-			clock_gettime(CLOCK_MONOTONIC, &ts);
-			return (uint64_t)ts.tv_sec * (uint64_t)RESOLUTION_HIGH + (uint64_t)ts.tv_nsec;
+			clock_gettime ( CLOCK_MONOTONIC, &ts );
+			return ( uint64_t )ts.tv_sec * ( uint64_t )TINYCLOCK_RESOLUTION_HIGH + ( uint64_t )ts.tv_nsec;
 		}
 
 		else
 #endif
 		{
 			struct timeval TimeVal;
-			gettimeofday(&TimeVal, 0);
-			return (uint64_t)TimeVal.tv_sec * (uint64_t)RESOLUTION_HIGH + (uint64_t)TimeVal.tv_usec;
+			gettimeofday ( &TimeVal, 0 );
+			return ( uint64_t )TimeVal.tv_sec * ( uint64_t )TINYCLOCK_RESOLUTION_HIGH + ( uint64_t )TimeVal.tv_usec;
 		}
 	}
 
@@ -290,26 +290,26 @@ class TinyClock
 	 */
 	static double Linux_GetTime()
 	{
-		return (double)(GetRawTime() - GetInstance()->BaseTime) * GetInstance()->Resolution;
+		return ( double ) ( GetRawTime() - GetInstance()->baseTime ) * GetInstance()->timeResolution;
 	}
 #endif
 
-	static TinyClock* Instance;/**<A static instance of TinyClock*/
+	static tinyClock*		instance;				/**< A static instance of TinyClock */
 
-	double TotalTime; /**<the total amount of time since TinyClock was initialized*/
-	double DeltaTime; /**<the delta time. The amount of time between CPU cycles*/
-	double Resolution; /**<the resolution of the time step. (seconds, milliseconds, etc.)*/
-	double BaseTime; /**<the system time since TinyClock was initialize*/
+	double					totalTime;				/**< The total amount of time since TinyClock was initialized */
+	double					deltaTime;				/**< The delta time. The amount of time between CPU cycles */
+	double					timeResolution;			/**< The resolution of the time step. ( seconds, milliseconds, etc. ) */
+	double					baseTime;				/**< The system time since TinyClock was initialize */
 
-#if defined(_WIN32) || defined(_WIN64)
-	bool SupportsHighRes; /**<whether high resolution time step is supported*/
-#elif defined(__linux__)
-	bool MonoticSupported; /**<Is monotonic supported*/
+#if defined ( _WIN32 ) || defined ( _WIN64 )
+	bool					supportsHighRes;		/**< Whether high resolution time step is supported */
+#elif defined ( __linux__ )
+	bool					monoticSupported;		/**< Is monotonic supported */
 #endif
 
-	static bool Initialized; /**<whether tinyWindow has been initialized*/
+	static bool				initialized;			/**< Whether tinyWindow has been initialized */
 };
 
-TinyClock* TinyClock::Instance = nullptr;
-bool TinyClock::Initialized = false;
+tinyClock* tinyClock::instance = nullptr;
+bool tinyClock::initialized = false;
 #endif
