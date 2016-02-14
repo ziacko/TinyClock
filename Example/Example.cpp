@@ -2,12 +2,12 @@
 #include <TinyClock.h>
 int main()
 {
-	TinyClock::Intialize();
+	tinyClock::Intialize();
 
-	for (double Time = 0; Time < 10; Time = TinyClock::GetTotalTime())
+	for (double Time = 0; Time < 10; Time = tinyClock::GetTotalTime())
 	{		
-		TinyClock::UpdateClockAdaptive();
-		printf("%f \r", TinyClock::GetTotalTime());
+		tinyClock::UpdateClockAdaptive();
+		printf("%f \r", tinyClock::GetTotalTime());
 	}
 
 	return 0;
