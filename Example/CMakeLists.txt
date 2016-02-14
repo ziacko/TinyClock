@@ -1,5 +1,5 @@
 cmake_minimum_required (VERSION 2.6)
-project (TinyExtender_Example CXX)
+project (TinyClock_Example CXX)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
  
