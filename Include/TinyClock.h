@@ -177,12 +177,12 @@ private:
 		if (!clock_gettime(CLOCK_MONOTONIC, &ts))
 		{
 			monoticSupported = true;
-			timeResolution = resolution_t::float_high;
+			timeResolution = floatHigh;
 		}
 		else
 #endif
 		{
-			timeResolution = resolution_t::float_low;
+			timeResolution = floatLow;
 		}
 
 		baseTime = GetRawTime();
@@ -197,7 +197,7 @@ private:
 		{
 			struct timespec ts;
 			clock_gettime(CLOCK_MONOTONIC, &ts);
-			return (uint64_t)ts.tv_sec * (uint64_t) + (uint64_t)ts.tv_nsec;
+			return (uint64_t)ts.tv_sec * (uint64_t)linuxHigh + (uint64_t)ts.tv_nsec;
 		}
 
 		else
@@ -205,7 +205,7 @@ private:
 		{
 			struct timeval TimeVal;
 			gettimeofday(&TimeVal, 0);
-			return (uint64_t)TimeVal.tv_sec * (uint64_t)resolution_t::high + (uint64_t)TimeVal.tv_usec;
+			return (uint64_t)TimeVal.tv_sec * (uint64_t)linuxHigh + (uint64_t)TimeVal.tv_usec;
 		}
 	}
 	/**
@@ -215,7 +215,7 @@ private:
 	 */
 	double Linux_GetTime()
 	{
-		return (double)(GetRawTime() - >baseTime) * timeResolution;
+		return (double)(GetRawTime() - baseTime) * timeResolution;
 	}
 
 #endif
