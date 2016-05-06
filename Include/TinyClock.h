@@ -68,7 +68,7 @@ public:
 	/**
 	 * get the current CPU delta time (time between CPU cycles in milliseconds)
 	 */
-	inline double GetDeltaTime(void)
+	double GetDeltaTime(void)
 	{
 		return deltaTime;
 	}

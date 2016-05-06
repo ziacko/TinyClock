@@ -58,5 +58,5 @@ link_libraries (${LIBS})
 SET ( SOURCE Example.cpp)
 SET ( HEADER_FILES ${TINYCLOCK_INCLUDE_DIR}/TinyClock.h)
 
-add_executable(Example ${SOURCE} ${HEADER_FILES})
-set_property(TARGET Example PROPERTY OUTPUT_NAME "Example")
+add_executable(TinyClock_Example ${SOURCE} ${HEADER_FILES})
+set_property(TARGET TinyClock_Example PROPERTY OUTPUT_NAME "TinyClock_Example")
